@@ -3,11 +3,25 @@
 One static page. No build step, no dependencies — open `index.html` to work on it.
 
     index.html    the page; CSS and JS are inline
-    demo.gif      screen recording (replace the placeholder div in index.html)
-    dist/         the .deb offered for download
+    install.sh    what `curl … | sh` runs; downloads the release, calls apt
+    logo.png      also the og:image
+    favicon.png
 
-## To do before launch
+The `.deb` is not here — it comes from GitHub Releases, so the download link
+always points at the latest version.
 
-- [ ] Record `demo.gif` and swap out the `.demo-placeholder` div
-- [ ] Point the GitHub link in the footer at the real repo
-- [ ] Serve over HTTPS (the copy button needs a secure context)
+## Adding the demo
+
+Drop `demo.mp4` (and optionally `demo-poster.jpg`) beside `index.html`. The
+page reveals the `<video>` only once the file actually loads, so until then
+visitors see the placeholder rather than a broken player. Nothing else to
+change.
+
+Keep it short (~20s), record with audio, and do not cut — the point is that
+the latency is real.
+
+## To do
+
+- [ ] Record `demo.mp4`
+- [ ] Check `install.sh` is served as `text/plain`, so "Read the script
+      first" opens rather than downloads

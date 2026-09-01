@@ -278,13 +278,17 @@
 
     <div class="install">
       <div class="cmd">
-        <code id="install-cmd"><span class="prompt">$ </span>sudo apt install ./sensor_0.1.0_amd64.deb</code>
-        <button type="button" data-copy="sudo apt install ./sensor_0.1.0_amd64.deb">Copy</button>
+        <code id="install-cmd"><span class="prompt">$ </span>curl -fsSL https://sensor.filamentplatform.com/install.sh | sh</code>
+        <button type="button" data-copy="curl -fsSL https://sensor.filamentplatform.com/install.sh | sh">Copy</button>
       </div>
       <p class="install-note">
         Ubuntu&nbsp;24.04 and Debian, x86-64 &middot;
-        <a href="https://github.com/Filament-Platform-Inc/Sensor/releases/latest/download/sensor_0.1.0_amd64.deb">Download the .deb</a> &middot;
-        then <code>sensorctl setup</code>
+        <a href="install.sh">Read the script first</a> &middot;
+        or <a href="https://github.com/Filament-Platform-Inc/Sensor/releases/latest/download/sensor_0.1.0_amd64.deb">download the .deb</a>
+      </p>
+      <p class="install-note">
+        The script only downloads the package and hands it to <code>apt</code> —
+        apt does the installing, which is what lets apt undo it.
       </p>
     </div>
   </header>
