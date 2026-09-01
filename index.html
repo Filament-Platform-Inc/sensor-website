@@ -93,7 +93,8 @@
     overflow: hidden;
     background: var(--surface);
   }
-  figure img { display: block; width: 100%; height: auto; }
+  figure img,
+  figure video { display: block; width: 100%; height: auto; background: #000; }
   figcaption {
     padding: 0.7rem 1rem;
     font-size: 0.85rem;
@@ -263,12 +264,16 @@
     </p>
 
     <figure>
-      <!-- Replace this div with: <img src="demo.gif" alt="Dictating into a text editor"> -->
+      <!-- Drop demo.mp4 (and optionally demo-poster.jpg) beside index.html and
+           delete the placeholder div below; the <video> takes over. -->
+      <video controls preload="metadata" poster="demo-poster.jpg" hidden>
+        <source src="demo.mp4" type="video/mp4">
+      </video>
       <div class="demo-placeholder">
-        <div>demo.gif</div>
-        <div style="font-size:0.8rem">20 seconds: hold the key, speak, text lands</div>
+        <div>demo.mp4</div>
+        <div style="font-size:0.8rem">20 seconds, with sound: hold the key, speak, text lands</div>
       </div>
-      <figcaption>Recorded in real time. No cuts, no speed-up.</figcaption>
+      <figcaption>Recorded in real time, with audio. No cuts, no speed-up.</figcaption>
     </figure>
 
     <div class="install">
@@ -278,7 +283,7 @@
       </div>
       <p class="install-note">
         Ubuntu&nbsp;24.04 and Debian, x86-64 &middot;
-        <a href="dist/sensor_0.1.0_amd64.deb">Download the .deb</a> &middot;
+        <a href="https://github.com/Filament-Platform-Inc/Sensor/releases/latest/download/sensor_0.1.0_amd64.deb">Download the .deb</a> &middot;
         then <code>sensorctl setup</code>
       </p>
     </div>
@@ -408,7 +413,7 @@
 
   <footer>
     <span>MIT licensed</span>
-    <a href="https://github.com/hasnainsyed/sensor">Source</a>
+    <a href="https://github.com/Filament-Platform-Inc/Sensor">Source</a>
     <a href="https://sensor.filamentplatform.com">sensor.filamentplatform.com</a>
     <span>English only for now (<code>tiny.en</code>)</span>
   </footer>
@@ -416,6 +421,20 @@
 </div>
 
 <script>
+  // Show the demo video only if it actually loads; otherwise the placeholder
+  // stays, rather than leaving a broken player on the page.
+  (function () {
+    var video = document.querySelector('figure video');
+    var placeholder = document.querySelector('.demo-placeholder');
+    if (!video) return;
+    video.addEventListener('loadedmetadata', function () {
+      video.hidden = false;
+      if (placeholder) placeholder.hidden = true;
+    });
+    video.addEventListener('error', function () { video.hidden = true; });
+    video.load();
+  })();
+
   // Copy buttons. Progressive enhancement -- the command is selectable text
   // whether or not this runs.
   document.querySelectorAll('.cmd button[data-copy]').forEach(function (btn) {
