@@ -1,0 +1,5 @@
+.DS_Store
+
+# Built packages belong on GitHub Releases, not in git history: they are
+# large, undiffable, and every version would live in the repo forever.
+dist/

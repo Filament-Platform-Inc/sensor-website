@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>sensor — hold a key, speak, text appears</title>
+<meta name="description" content="Local voice dictation for Linux. Works on GNOME Wayland. Installs with one command, removes with one command. Nothing leaves your machine.">
+
+<meta property="og:title" content="sensor — voice dictation for Linux">
+<meta property="og:description" content="Hold a key, speak, text appears in the focused app. Works on GNOME Wayland. ~700ms, fully local.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://sensor.filamentplatform.com">
+<meta property="og:image" content="https://sensor.filamentplatform.com/logo.png">
+<link rel="icon" type="image/png" href="favicon.png">
+
+<style>
+  :root {
+    --bg:      #fbfbfa;
+    --surface: #ffffff;
+    --text:    #16181d;
+    --muted:   #5c6370;
+    --faint:   #8b93a1;
+    --line:    #e6e6e3;
+    --accent:  #1f6feb;
+    --code-bg: #14161a;
+    --code-fg: #e8eaed;
+    --ok:      #1a7f45;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:      #0f1115;
+      --surface: #161920;
+      --text:    #e8eaed;
+      --muted:   #9aa2b1;
+      --faint:   #6b7382;
+      --line:    #262b35;
+      --accent:  #6ea8ff;
+      --code-bg: #0a0c10;
+      --code-fg: #e8eaed;
+      --ok:      #4ade80;
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.65 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 45rem; margin: 0 auto; padding: 0 1.5rem; }
+
+  header { padding: 5rem 0 0; }
+
+  .name {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 0 0 3rem;
+  }
+  .name img { border-radius: 6px; }
+  .name span { color: var(--faint); font-weight: 400; }
+
+  h1 {
+    font-size: clamp(2rem, 6vw, 3rem);
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    font-weight: 600;
+    margin: 0 0 1.25rem;
+  }
+
+  .lede {
+    font-size: 1.15rem;
+    color: var(--muted);
+    margin: 0 0 2.5rem;
+    max-width: 34rem;
+  }
+  .lede strong { color: var(--text); font-weight: 600; }
+
+  /* --- demo ------------------------------------------------------------ */
+
+  figure {
+    margin: 0 0 3rem;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--surface);
+  }
+  figure img { display: block; width: 100%; height: auto; }
+  figcaption {
+    padding: 0.7rem 1rem;
+    font-size: 0.85rem;
+    color: var(--faint);
+    border-top: 1px solid var(--line);
+  }
+
+  /* Placeholder shown until demo.gif exists. */
+  .demo-placeholder {
+    aspect-ratio: 16 / 9;
+    display: grid;
+    place-content: center;
+    text-align: center;
+    gap: 0.5rem;
+    color: var(--faint);
+    font-size: 0.9rem;
+    background:
+      repeating-linear-gradient(45deg,
+        transparent, transparent 12px,
+        color-mix(in srgb, var(--line) 45%, transparent) 12px,
+        color-mix(in srgb, var(--line) 45%, transparent) 24px);
+  }
+
+  /* --- install --------------------------------------------------------- */
+
+  .install { margin: 0 0 1rem; }
+
+  .cmd {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    background: var(--code-bg);
+    border-radius: 8px;
+    overflow: hidden;
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+  .cmd code {
+    flex: 1;
+    padding: 0.9rem 1.1rem;
+    color: var(--code-fg);
+    font-size: 0.9rem;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .cmd code .prompt { color: var(--faint); user-select: none; }
+  .cmd button {
+    flex: none;
+    border: 0;
+    border-left: 1px solid #ffffff1a;
+    background: transparent;
+    color: #9aa2b1;
+    font: inherit;
+    font-size: 0.8rem;
+    padding: 0 1rem;
+    cursor: pointer;
+  }
+  .cmd button:hover { color: #fff; background: #ffffff0d; }
+  .cmd button.done { color: var(--ok); }
+
+  .install-note {
+    font-size: 0.875rem;
+    color: var(--faint);
+    margin: 0.75rem 0 0;
+  }
+
+  /* --- content --------------------------------------------------------- */
+
+  section { padding: 3.5rem 0 0; }
+
+  h2 {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--faint);
+    font-weight: 600;
+    margin: 0 0 1.25rem;
+  }
+
+  p { margin: 0 0 1rem; }
+  p.tight { margin-bottom: 0.5rem; }
+
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  code:not(.cmd code) {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.875em;
+    background: color-mix(in srgb, var(--line) 55%, transparent);
+    padding: 0.12em 0.4em;
+    border-radius: 4px;
+  }
+
+  ul { margin: 0 0 1rem; padding-left: 1.1rem; }
+  li { margin-bottom: 0.4rem; }
+  li::marker { color: var(--faint); }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: 1.5rem 2rem;
+    margin-bottom: 1rem;
+  }
+  .grid h3 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin: 0 0 0.3rem;
+  }
+  .grid p { font-size: 0.9rem; color: var(--muted); margin: 0; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+  }
+  th, td {
+    text-align: left;
+    padding: 0.55rem 0.75rem 0.55rem 0;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  th { color: var(--faint); font-weight: 500; }
+  td:first-child {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.85em;
+    white-space: nowrap;
+    padding-right: 1.5rem;
+  }
+  .scroll { overflow-x: auto; }
+
+  .callout {
+    border-left: 2px solid var(--line);
+    padding: 0.1rem 0 0.1rem 1.1rem;
+    color: var(--muted);
+    font-size: 0.925rem;
+    margin: 0 0 1rem;
+  }
+
+  footer {
+    margin-top: 5rem;
+    padding: 2rem 0 4rem;
+    border-top: 1px solid var(--line);
+    font-size: 0.875rem;
+    color: var(--faint);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header>
+    <p class="name">
+      <img src="logo.png" alt="" width="28" height="28">
+      sensor <span>— by Filament</span>
+    </p>
+
+    <h1>Hold a key, speak,<br>text appears.</h1>
+
+    <p class="lede">
+      Voice dictation for Linux that actually works on <strong>GNOME Wayland</strong>.
+      Runs entirely on your machine. Installs with one command — and removes
+      just as cleanly.
+    </p>
+
+    <figure>
+      <!-- Replace this div with: <img src="demo.gif" alt="Dictating into a text editor"> -->
+      <div class="demo-placeholder">
+        <div>demo.gif</div>
+        <div style="font-size:0.8rem">20 seconds: hold the key, speak, text lands</div>
+      </div>
+      <figcaption>Recorded in real time. No cuts, no speed-up.</figcaption>
+    </figure>
+
+    <div class="install">
+      <div class="cmd">
+        <code id="install-cmd"><span class="prompt">$ </span>sudo apt install ./sensor_0.1.0_amd64.deb</code>
+        <button type="button" data-copy="sudo apt install ./sensor_0.1.0_amd64.deb">Copy</button>
+      </div>
+      <p class="install-note">
+        Ubuntu&nbsp;24.04 and Debian, x86-64 &middot;
+        <a href="dist/sensor_0.1.0_amd64.deb">Download the .deb</a> &middot;
+        then <code>sensorctl setup</code>
+      </p>
+    </div>
+  </header>
+
+  <section>
+    <h2>Why this exists</h2>
+    <p>
+      Dictation on Linux is a graveyard of half-working projects. Not because
+      transcription is hard — that problem is solved — but because the last
+      mile isn't. Every alternative is a <code>git clone</code>, a Python
+      environment, and a list of manual <code>sudo</code> steps that ends with
+      "now edit your udev rules."
+    </p>
+    <p>
+      And most of them don't run on GNOME Wayland at all, which is the default
+      desktop on the most popular Linux distribution.
+    </p>
+    <p class="callout">
+      sensor is the same transcription everyone else uses, packaged like
+      software you'd actually install.
+    </p>
+  </section>
+
+  <section>
+    <h2>What you get</h2>
+    <div class="grid">
+      <div>
+        <h3>Works on Wayland</h3>
+        <p>And X11, KDE, and a bare tty. Reads input below the compositor, so
+        there's no desktop it doesn't support.</p>
+      </div>
+      <div>
+        <h3>~700ms</h3>
+        <p>Key release to text on a laptop with no GPU. The model stays warm
+        in a daemon.</p>
+      </div>
+      <div>
+        <h3>Nothing leaves</h3>
+        <p>Transcription is on-device. The daemon runs with no network
+        namespace at all — it <em>cannot</em> transmit.</p>
+      </div>
+      <div>
+        <h3>Shows its work</h3>
+        <p>A window with the on/off switch, your microphone, and the last few
+        things it heard. Nothing hidden.</p>
+      </div>
+      <div>
+        <h3>Deletes cleanly</h3>
+        <p>One command removes every file, rule, and group change. Including
+        the ones the installer made.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>What it touches on your system</h2>
+    <p>
+      sensor reads every keystroke and can synthesise keystrokes. That's
+      inherent to any global-hotkey tool on Linux, and you deserve to know
+      exactly what it does before you install it.
+    </p>
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr><th>Path or change</th><th>What for</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>/usr/bin/sensord<br>/usr/bin/sensorctl</td><td>The daemon and the CLI.</td></tr>
+          <tr><td>/usr/lib/udev/rules.d/<wbr>99-sensor.rules</td><td>Grants the <code>input</code> and <code>uinput</code> groups access to the device nodes.</td></tr>
+          <tr><td>/usr/lib/modules-load.d/<wbr>sensor.conf</td><td>Loads the <code>uinput</code> kernel module at boot.</td></tr>
+          <tr><td>/usr/lib/systemd/user/<wbr>sensord.service</td><td>Runs the daemon as <em>you</em>, never as root.</td></tr>
+          <tr><td>group membership</td><td>Adds you to <code>input</code> and <code>uinput</code>. Recorded, so removal reverses only what was added.</td></tr>
+          <tr><td>~/.local/share/sensor/</td><td>The speech model, downloaded once (~75MB).</td></tr>
+          <tr><td>~/.config/sensor/config</td><td>Your settings.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      Why device-level access at all: Wayland deliberately forbids
+      applications from reading global keys or injecting keystrokes, and the
+      protocol that some tools use for it is refused by GNOME. Reading
+      <code>/dev/input</code> and writing <code>/dev/uinput</code> sits below
+      the compositor, which is why it works everywhere.
+    </p>
+  </section>
+
+  <section>
+    <h2>Removing it</h2>
+    <div class="cmd">
+      <code><span class="prompt">$ </span>sudo apt purge sensor</code>
+      <button type="button" data-copy="sudo apt purge sensor">Copy</button>
+    </div>
+    <p class="install-note">
+      Removes the binaries, the udev rule, the systemd unit, the model, your
+      settings, and the group memberships the installer added. Nothing is left
+      behind.
+    </p>
+    <p style="margin-top:1.25rem">
+      This is listed as prominently as the install because it should be. A
+      tool that reads your keystrokes should be cheap to walk away from —
+      that's what makes it reasonable to try in the first place.
+    </p>
+  </section>
+
+  <section>
+    <h2>Using it</h2>
+    <p class="tight">
+      Hold <strong>Right&nbsp;Alt&nbsp;+&nbsp;<code>.</code></strong>, speak, release.
+    </p>
+    <p>
+      A chord rather than a single key, because single keys are all taken: a
+      lone modifier gets grabbed by browsers, and a lone ordinary key steals a
+      character from whatever you're typing. This one collides with nothing and
+      is still a one-handed press.
+    </p>
+    <p>
+      Everything is in the settings window — hotkey, microphone, on/off, and
+      what it just heard. Open <strong>sensor</strong> from your applications.
+    </p>
+    <ul>
+      <li><code>sensorctl setup</code> — download the model, enable the daemon</li>
+      <li><code>sensorctl keys</code> — bind any key or chord by pressing it</li>
+      <li><code>sensorctl doctor</code> — check what's working and what isn't</li>
+    </ul>
+  </section>
+
+  <footer>
+    <span>MIT licensed</span>
+    <a href="https://github.com/hasnainsyed/sensor">Source</a>
+    <a href="https://sensor.filamentplatform.com">sensor.filamentplatform.com</a>
+    <span>English only for now (<code>tiny.en</code>)</span>
+  </footer>
+
+</div>
+
+<script>
+  // Copy buttons. Progressive enhancement -- the command is selectable text
+  // whether or not this runs.
+  document.querySelectorAll('.cmd button[data-copy]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      navigator.clipboard.writeText(btn.dataset.copy).then(function () {
+        var was = btn.textContent;
+        btn.textContent = 'Copied';
+        btn.classList.add('done');
+        setTimeout(function () {
+          btn.textContent = was;
+          btn.classList.remove('done');
+        }, 1600);
+      }).catch(function () {
+        btn.textContent = 'Press ⌘C';
+      });
+    });
+  });
+</script>
+
+</body>
+</html>
