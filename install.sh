@@ -93,11 +93,14 @@ cat <<'DONE'
 
   Two things left:
 
-    1. Log out and back in — your new group membership only reaches a
-       session at login. This step is unavoidable.
+    1. Run:  sensorctl setup
+       Downloads the speech model (~75MB, once) and enables the daemon.
 
-    2. Run:  sensorctl setup
-       to download the speech model (~75MB, once).
+    2. Log out and back in.
+       Your group list is fixed when a session starts, so this one cannot
+       see the 'input' and 'uinput' groups you were just added to. One
+       logout, once. It is the price of the daemon running as you rather
+       than as root.
 
   Then hold Right Alt + . , speak, and release.
   Open "sensor" from your applications to change the key or turn it off.
