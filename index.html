@@ -142,20 +142,20 @@
     border-top: 1px solid var(--line);
   }
 
-  /* Placeholder shown until demo.gif exists. */
-  .demo-placeholder {
+  /* The embed sets its own height from the 16:9 box, so the figure never
+     jumps as the iframe loads. */
+  .embed {
+    position: relative;
     aspect-ratio: 16 / 9;
-    display: grid;
-    place-content: center;
-    text-align: center;
-    gap: 0.5rem;
-    color: var(--faint);
-    font-size: 0.9rem;
-    background:
-      repeating-linear-gradient(45deg,
-        transparent, transparent 12px,
-        color-mix(in srgb, var(--line) 45%, transparent) 12px,
-        color-mix(in srgb, var(--line) 45%, transparent) 24px);
+    background: #000;
+  }
+  .embed iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
   }
 
   /* --- install --------------------------------------------------------- */
@@ -464,14 +464,8 @@
       </p>
 
       <figure data-demo="demo-install">
-        <video controls preload="metadata" poster="demo-install-poster.jpg" hidden>
-          <source src="demo-install.mp4" type="video/mp4">
-        </video>
-        <div class="demo-placeholder">
-          <div>demo-install.mp4</div>
-          <div style="font-size:0.8rem">running the install command, start to finish</div>
-        </div>
-        <figcaption>The install, unedited.</figcaption>
+        <div class="embed"><iframe src="https://www.youtube-nocookie.com/embed/zw2BywPu808?rel=0" title="Installing sensor" loading="lazy" allowfullscreen allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe></div>
+        <figcaption>The install, unedited and in real time.</figcaption>
       </figure>
 
       <p>
@@ -505,14 +499,8 @@
       </p>
 
       <figure data-demo="demo-uninstall">
-        <video controls preload="metadata" poster="demo-uninstall-poster.jpg" hidden>
-          <source src="demo-uninstall.mp4" type="video/mp4">
-        </video>
-        <div class="demo-placeholder">
-          <div>demo-uninstall.mp4</div>
-          <div style="font-size:0.8rem">one command, and it's gone</div>
-        </div>
-        <figcaption>The removal, unedited.</figcaption>
+        <div class="embed"><iframe src="https://www.youtube-nocookie.com/embed/rRZSNph1MNM?rel=0" title="Removing sensor" loading="lazy" allowfullscreen allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe></div>
+        <figcaption>The removal, unedited and in real time.</figcaption>
       </figure>
 
       <p>
@@ -531,13 +519,7 @@
     <section>
       <h2>Watch it work</h2>
       <figure data-demo="demo-use">
-        <video controls preload="metadata" poster="demo-use-poster.jpg" hidden>
-          <source src="demo-use.mp4" type="video/mp4">
-        </video>
-        <div class="demo-placeholder">
-          <div>demo-use.mp4</div>
-          <div style="font-size:0.8rem">hold the key, speak, text lands in the focused app</div>
-        </div>
+        <div class="embed"><iframe src="https://www.youtube-nocookie.com/embed/nO42QbOo7X4?rel=0" title="Using sensor" loading="lazy" allowfullscreen allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe></div>
         <figcaption>Recorded in real time, with audio. No cuts, no speed-up.</figcaption>
       </figure>
     </section>
@@ -738,21 +720,6 @@
     window.addEventListener('hashchange', function () { fromHash(true); });
     fromHash(false);
   })();
-
-  // --- demo videos -----------------------------------------------------
-  // Reveal each clip only if it actually loads; otherwise its placeholder
-  // stays, rather than leaving a broken player on the page.
-  document.querySelectorAll('figure[data-demo]').forEach(function (fig) {
-    var video = fig.querySelector('video');
-    var placeholder = fig.querySelector('.demo-placeholder');
-    if (!video) return;
-    video.addEventListener('loadedmetadata', function () {
-      video.hidden = false;
-      if (placeholder) placeholder.hidden = true;
-    });
-    video.addEventListener('error', function () { video.hidden = true; });
-    video.load();
-  });
 
   // --- copy buttons ----------------------------------------------------
   // Progressive enhancement: the command is selectable text either way.

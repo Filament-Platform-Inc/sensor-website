@@ -7,3 +7,6 @@ dist/
 # Raw screen captures. Only the trimmed demo-*.mp4 files beside index.html
 # are part of the site.
 recordings/
+
+# Demo clips live on YouTube; nothing large belongs in this repo.
+demo-*.mp4
