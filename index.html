@@ -233,6 +233,52 @@
     margin: 0 0 1rem;
   }
 
+  /* --- tabs ------------------------------------------------------------ */
+
+  .tabs {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    gap: 0.25rem;
+    margin: 3rem 0 0;
+    border-bottom: 1px solid var(--line);
+    background: color-mix(in srgb, var(--bg) 92%, transparent);
+    backdrop-filter: blur(8px);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+
+  .tabs button {
+    flex: none;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    background: none;
+    color: var(--muted);
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 500;
+    padding: 0.85rem 0.9rem;
+    margin-bottom: -1px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.12s;
+  }
+  .tabs button:hover { color: var(--text); }
+  .tabs button[aria-selected="true"] {
+    color: var(--text);
+    border-bottom-color: var(--accent);
+  }
+  .tabs button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+    border-radius: 4px;
+  }
+
+  .panel[hidden] { display: none; }
+  .panel > section:first-child { padding-top: 2.5rem; }
+
   footer {
     margin-top: 5rem;
     padding: 2rem 0 4rem;
@@ -263,15 +309,13 @@
       just as cleanly.
     </p>
 
-    <figure>
-      <!-- Drop demo.mp4 (and optionally demo-poster.jpg) beside index.html and
-           delete the placeholder div below; the <video> takes over. -->
-      <video controls preload="metadata" poster="demo-poster.jpg" hidden>
-        <source src="demo.mp4" type="video/mp4">
+    <figure data-demo="demo-use">
+      <video controls preload="metadata" poster="demo-use-poster.jpg" hidden>
+        <source src="demo-use.mp4" type="video/mp4">
       </video>
       <div class="demo-placeholder">
-        <div>demo.mp4</div>
-        <div style="font-size:0.8rem">20 seconds, with sound: hold the key, speak, text lands</div>
+        <div>demo-use.mp4</div>
+        <div style="font-size:0.8rem">hold the key, speak, text lands in the focused app</div>
       </div>
       <figcaption>Recorded in real time, with audio. No cuts, no speed-up.</figcaption>
     </figure>
@@ -286,134 +330,312 @@
         <a href="install.sh">Read the script first</a> &middot;
         or <a href="https://github.com/Filament-Platform-Inc/Sensor/releases/latest/download/sensor_0.1.0_amd64.deb">download the .deb</a>
       </p>
-      <p class="install-note">
-        The script only downloads the package and hands it to <code>apt</code> —
-        apt does the installing, which is what lets apt undo it.
-      </p>
     </div>
   </header>
 
-  <section>
-    <h2>Why this exists</h2>
-    <p>
-      Dictation on Linux is a graveyard of half-working projects. Not because
-      transcription is hard — that problem is solved — but because the last
-      mile isn't. Every alternative is a <code>git clone</code>, a Python
-      environment, and a list of manual <code>sudo</code> steps that ends with
-      "now edit your udev rules."
-    </p>
-    <p>
-      And most of them don't run on GNOME Wayland at all, which is the default
-      desktop on the most popular Linux distribution.
-    </p>
-    <p class="callout">
-      sensor is the same transcription everyone else uses, packaged like
-      software you'd actually install.
-    </p>
-  </section>
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button type="button" role="tab" id="tab-about"        aria-controls="panel-about"        aria-selected="true"  data-tab="about">What is sensor</button>
+    <button type="button" role="tab" id="tab-install"      aria-controls="panel-install"      aria-selected="false" data-tab="install" tabindex="-1">Install &amp; remove</button>
+    <button type="button" role="tab" id="tab-use"          aria-controls="panel-use"          aria-selected="false" data-tab="use" tabindex="-1">How to use it</button>
+    <button type="button" role="tab" id="tab-transparency" aria-controls="panel-transparency" aria-selected="false" data-tab="transparency" tabindex="-1">Transparency</button>
+  </nav>
 
-  <section>
-    <h2>What you get</h2>
-    <div class="grid">
-      <div>
-        <h3>Works on Wayland</h3>
-        <p>And X11, KDE, and a bare tty. Reads input below the compositor, so
-        there's no desktop it doesn't support.</p>
-      </div>
-      <div>
-        <h3>~700ms</h3>
-        <p>Key release to text on a laptop with no GPU. The model stays warm
-        in a daemon.</p>
-      </div>
-      <div>
-        <h3>Nothing leaves</h3>
-        <p>Transcription is on-device. The daemon runs with no network
-        namespace at all — it <em>cannot</em> transmit.</p>
-      </div>
-      <div>
-        <h3>Shows its work</h3>
-        <p>A window with the on/off switch, your microphone, and the last few
-        things it heard. Nothing hidden.</p>
-      </div>
-      <div>
-        <h3>Deletes cleanly</h3>
-        <p>One command removes every file, rule, and group change. Including
-        the ones the installer made.</p>
-      </div>
-    </div>
-  </section>
+  <!-- ======================= What is sensor ======================= -->
+  <div class="panel" id="panel-about" role="tabpanel" aria-labelledby="tab-about">
 
-  <section>
-    <h2>What it touches on your system</h2>
-    <p>
-      sensor reads every keystroke and can synthesise keystrokes. That's
-      inherent to any global-hotkey tool on Linux, and you deserve to know
-      exactly what it does before you install it.
-    </p>
-    <div class="scroll">
-      <table>
-        <thead>
-          <tr><th>Path or change</th><th>What for</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>/usr/bin/sensord<br>/usr/bin/sensorctl</td><td>The daemon and the CLI.</td></tr>
-          <tr><td>/usr/lib/udev/rules.d/<wbr>99-sensor.rules</td><td>Grants the <code>input</code> and <code>uinput</code> groups access to the device nodes.</td></tr>
-          <tr><td>/usr/lib/modules-load.d/<wbr>sensor.conf</td><td>Loads the <code>uinput</code> kernel module at boot.</td></tr>
-          <tr><td>/usr/lib/systemd/user/<wbr>sensord.service</td><td>Runs the daemon as <em>you</em>, never as root.</td></tr>
-          <tr><td>group membership</td><td>Adds you to <code>input</code> and <code>uinput</code>. Recorded, so removal reverses only what was added.</td></tr>
-          <tr><td>~/.local/share/sensor/</td><td>The speech model, downloaded once (~75MB).</td></tr>
-          <tr><td>~/.config/sensor/config</td><td>Your settings.</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p>
-      Why device-level access at all: Wayland deliberately forbids
-      applications from reading global keys or injecting keystrokes, and the
-      protocol that some tools use for it is refused by GNOME. Reading
-      <code>/dev/input</code> and writing <code>/dev/uinput</code> sits below
-      the compositor, which is why it works everywhere.
-    </p>
-  </section>
+    <section>
+      <h2>Why this exists</h2>
+      <p>
+        Dictation on Linux is a graveyard of half-working projects. Not because
+        transcription is hard — that problem is solved — but because the last
+        mile isn't. Every alternative is a <code>git clone</code>, a Python
+        environment, and a list of manual <code>sudo</code> steps that ends with
+        "now edit your udev rules."
+      </p>
+      <p>
+        And most of them don't run on GNOME Wayland at all, which is the default
+        desktop on the most popular Linux distribution.
+      </p>
+      <p class="callout">
+        sensor is the same transcription everyone else uses, packaged like
+        software you'd actually install.
+      </p>
+    </section>
 
-  <section>
-    <h2>Removing it</h2>
-    <div class="cmd">
-      <code><span class="prompt">$ </span>sudo apt purge sensor</code>
-      <button type="button" data-copy="sudo apt purge sensor">Copy</button>
-    </div>
-    <p class="install-note">
-      Removes the binaries, the udev rule, the systemd unit, the model, your
-      settings, and the group memberships the installer added. Nothing is left
-      behind.
-    </p>
-    <p style="margin-top:1.25rem">
-      This is listed as prominently as the install because it should be. A
-      tool that reads your keystrokes should be cheap to walk away from —
-      that's what makes it reasonable to try in the first place.
-    </p>
-  </section>
+    <section>
+      <h2>What you get</h2>
+      <div class="grid">
+        <div>
+          <h3>Works on Wayland</h3>
+          <p>And X11, KDE, and a bare tty. Reads input below the compositor, so
+          there's no desktop it doesn't support.</p>
+        </div>
+        <div>
+          <h3>~700ms</h3>
+          <p>Key release to text on a laptop with no GPU. The model stays warm
+          in a daemon.</p>
+        </div>
+        <div>
+          <h3>Nothing leaves</h3>
+          <p>Transcription is on-device. The daemon runs with no network
+          namespace at all — it <em>cannot</em> transmit.</p>
+        </div>
+        <div>
+          <h3>Shows its work</h3>
+          <p>A window with the on/off switch, your microphone, and the last few
+          things it heard. Nothing hidden.</p>
+        </div>
+        <div>
+          <h3>Deletes cleanly</h3>
+          <p>One command removes every file, rule, and group change. Including
+          the ones the installer made.</p>
+        </div>
+      </div>
+    </section>
 
-  <section>
-    <h2>Using it</h2>
-    <p class="tight">
-      Hold <strong>Right&nbsp;Alt&nbsp;+&nbsp;<code>.</code></strong>, speak, release.
-    </p>
-    <p>
-      A chord rather than a single key, because single keys are all taken: a
-      lone modifier gets grabbed by browsers, and a lone ordinary key steals a
-      character from whatever you're typing. This one collides with nothing and
-      is still a one-handed press.
-    </p>
-    <p>
-      Everything is in the settings window — hotkey, microphone, on/off, and
-      what it just heard. Open <strong>sensor</strong> from your applications.
-    </p>
-    <ul>
-      <li><code>sensorctl setup</code> — download the model, enable the daemon</li>
-      <li><code>sensorctl keys</code> — bind any key or chord by pressing it</li>
-      <li><code>sensorctl doctor</code> — check what's working and what isn't</li>
-    </ul>
-  </section>
+    <section>
+      <h2>How it works</h2>
+      <p>
+        A small daemon runs as you — never as root — and keeps a speech model
+        loaded in memory. Holding the hotkey starts recording; releasing it
+        hands the audio straight to the model and puts the result into the
+        window you're already typing in.
+      </p>
+      <p>
+        Keeping the model warm is the whole reason it's a daemon rather than a
+        script. Loading it per utterance is what makes every other project feel
+        slow.
+      </p>
+    </section>
+
+  </div>
+
+  <!-- ======================= Install &amp; remove ======================= -->
+  <div class="panel" id="panel-install" role="tabpanel" aria-labelledby="tab-install" hidden>
+
+    <section>
+      <h2>Installing</h2>
+      <div class="cmd">
+        <code><span class="prompt">$ </span>curl -fsSL https://sensor.filamentplatform.com/install.sh | sh</code>
+        <button type="button" data-copy="curl -fsSL https://sensor.filamentplatform.com/install.sh | sh">Copy</button>
+      </div>
+      <p class="install-note">
+        Ubuntu&nbsp;24.04 and Debian, x86-64 &middot;
+        <a href="install.sh">Read the script first</a> &middot;
+        or <a href="https://github.com/Filament-Platform-Inc/Sensor/releases/latest/download/sensor_0.1.0_amd64.deb">download the .deb</a>
+      </p>
+
+      <figure data-demo="demo-install">
+        <video controls preload="metadata" poster="demo-install-poster.jpg" hidden>
+          <source src="demo-install.mp4" type="video/mp4">
+        </video>
+        <div class="demo-placeholder">
+          <div>demo-install.mp4</div>
+          <div style="font-size:0.8rem">running the install command, start to finish</div>
+        </div>
+        <figcaption>The install, unedited.</figcaption>
+      </figure>
+
+      <p>
+        The script does not install anything itself. It checks your
+        architecture, downloads the <code>.deb</code> from GitHub Releases,
+        verifies it's a real package, and hands it to <code>apt</code>. Apt
+        does the installing — which is exactly what lets apt undo it later.
+      </p>
+      <p>
+        Then <strong>log out and back in once</strong>. That's unavoidable:
+        group membership only reaches a session at login, and sensor needs to
+        be in <code>input</code> and <code>uinput</code> to see your hotkey and
+        type for you.
+      </p>
+      <p class="install-note">
+        First launch downloads the speech model (~75MB) once. After that,
+        nothing touches the network again.
+      </p>
+    </section>
+
+    <section>
+      <h2>Removing it</h2>
+      <div class="cmd">
+        <code><span class="prompt">$ </span>sudo apt purge sensor</code>
+        <button type="button" data-copy="sudo apt purge sensor">Copy</button>
+      </div>
+      <p class="install-note">
+        Removes the binaries, the udev rule, the systemd unit, the model, your
+        settings, and the group memberships the installer added. Nothing is
+        left behind.
+      </p>
+
+      <figure data-demo="demo-uninstall">
+        <video controls preload="metadata" poster="demo-uninstall-poster.jpg" hidden>
+          <source src="demo-uninstall.mp4" type="video/mp4">
+        </video>
+        <div class="demo-placeholder">
+          <div>demo-uninstall.mp4</div>
+          <div style="font-size:0.8rem">one command, and it's gone</div>
+        </div>
+        <figcaption>The removal, unedited.</figcaption>
+      </figure>
+
+      <p>
+        This is listed as prominently as the install because it should be. A
+        tool that reads your keystrokes should be cheap to walk away from —
+        that's what makes it reasonable to try in the first place.
+      </p>
+      <p class="callout">
+        Removal is verified, not assumed: a throwaway container is snapshotted
+        before installing and diffed after purging, and the test fails if a
+        single file or group change survives.
+      </p>
+    </section>
+
+  </div>
+
+  <!-- ======================= How to use it ======================= -->
+  <div class="panel" id="panel-use" role="tabpanel" aria-labelledby="tab-use" hidden>
+
+    <section>
+      <h2>The basics</h2>
+      <p class="tight">
+        Hold <strong>Right&nbsp;Alt&nbsp;+&nbsp;<code>.</code></strong>, speak, release.
+      </p>
+      <p>
+        A chord rather than a single key, because single keys are all taken: a
+        lone modifier gets grabbed by browsers, and a lone ordinary key steals a
+        character from whatever you're typing. This one collides with nothing and
+        is still a one-handed press.
+      </p>
+      <p>
+        The text goes into whatever window has focus — a browser, an editor, a
+        chat box, a terminal. sensor doesn't care what the app is, because it
+        works below the desktop rather than talking to it.
+      </p>
+    </section>
+
+    <section>
+      <h2>The settings window</h2>
+      <p>
+        Open <strong>sensor</strong> from your applications. Everything is in
+        one small window: the on/off switch and what state the daemon is in,
+        your hotkey, your microphone, the model in use, and the last few things
+        it heard.
+      </p>
+      <p class="callout">
+        Those recent transcriptions live in memory only. They are never written
+        to disk — a file of everything you have ever dictated would be a worse
+        thing to leak than the keystroke access itself.
+      </p>
+    </section>
+
+    <section>
+      <h2>From the terminal</h2>
+      <ul>
+        <li><code>sensorctl setup</code> — download the model, enable the daemon</li>
+        <li><code>sensorctl keys</code> — bind any key or chord by pressing it</li>
+        <li><code>sensorctl config</code> — show your settings and where they live</li>
+        <li><code>sensorctl doctor</code> — check what's working and what isn't</li>
+      </ul>
+      <p class="install-note">
+        <code>sensorctl keys</code> exists because no hotkey is safe on every
+        keyboard. Laptops fold the function row into an Fn layer, and 2024+
+        models replaced right Ctrl with a Copilot key. Pressing the key you
+        want is more reliable than guessing its name.
+      </p>
+    </section>
+
+    <section>
+      <h2>Good to know</h2>
+      <ul>
+        <li>English only for now — it ships with <code>tiny.en</code>.</li>
+        <li>Terminals need <code>Ctrl+Shift+V</code> to paste; there's a setting for that.</li>
+        <li>A short tap produces nothing rather than a guessed word. Speak, then release.</li>
+        <li>If a paste ever fails, the text is left on your clipboard rather than lost.</li>
+      </ul>
+    </section>
+
+  </div>
+
+  <!-- ======================= Transparency ======================= -->
+  <div class="panel" id="panel-transparency" role="tabpanel" aria-labelledby="tab-transparency" hidden>
+
+    <section>
+      <h2>What it touches on your system</h2>
+      <p>
+        sensor reads every keystroke and can synthesise keystrokes. That's
+        inherent to any global-hotkey tool on Linux, and you deserve to know
+        exactly what it does before you install it.
+      </p>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr><th>Path or change</th><th>What for</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>/usr/bin/sensord<br>/usr/bin/sensorctl</td><td>The daemon and the CLI.</td></tr>
+            <tr><td>/usr/lib/udev/rules.d/<wbr>99-sensor.rules</td><td>Grants the <code>input</code> and <code>uinput</code> groups access to the device nodes.</td></tr>
+            <tr><td>/usr/lib/modules-load.d/<wbr>sensor.conf</td><td>Loads the <code>uinput</code> kernel module at boot.</td></tr>
+            <tr><td>/usr/lib/systemd/user/<wbr>sensord.service</td><td>Runs the daemon as <em>you</em>, never as root.</td></tr>
+            <tr><td>group membership</td><td>Adds you to <code>input</code> and <code>uinput</code>. Recorded, so removal reverses only what was added.</td></tr>
+            <tr><td>~/.local/share/sensor/</td><td>The speech model, downloaded once (~75MB).</td></tr>
+            <tr><td>~/.config/sensor/config</td><td>Your settings.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>Why it needs that access</h2>
+      <p>
+        Wayland deliberately forbids applications from reading global keys or
+        injecting keystrokes, and the protocol some tools use for it is refused
+        by GNOME outright. Reading <code>/dev/input</code> and writing
+        <code>/dev/uinput</code> sits below the compositor, which is why it
+        works on GNOME, KDE, X11 and a bare tty alike.
+      </p>
+      <p>
+        There is no version of a global dictation hotkey on Linux that avoids
+        this. What's optional is whether the project is honest about it.
+      </p>
+    </section>
+
+    <section>
+      <h2>What limits it</h2>
+      <div class="grid">
+        <div>
+          <h3>No network, structurally</h3>
+          <p>The daemon's systemd unit sets <code>PrivateNetwork=yes</code>. It
+          has no network namespace — not a policy, a kernel-enforced fact.</p>
+        </div>
+        <div>
+          <h3>Never runs as root</h3>
+          <p>It's a user service. Group membership is what grants device
+          access, not privilege.</p>
+        </div>
+        <div>
+          <h3>Nothing written down</h3>
+          <p>No transcript log, no history file. Recent utterances live in
+          memory and vanish when the daemon stops.</p>
+        </div>
+        <div>
+          <h3>Small dependency tree</h3>
+          <p>A binary that reads every keystroke should be auditable by a
+          stranger in an afternoon. Every crate has to earn its place.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Read it yourself</h2>
+      <p>
+        The whole thing is MIT licensed and on
+        <a href="https://github.com/Filament-Platform-Inc/Sensor">GitHub</a>.
+        The parts worth reading first are the packaging scripts — 
+        <code>packaging/debian/postinst</code> and <code>postrm</code> — 
+        because they're what actually changes your system.
+      </p>
+    </section>
+
+  </div>
 
   <footer>
     <span>MIT licensed</span>
@@ -425,11 +647,61 @@
 </div>
 
 <script>
-  // Show the demo video only if it actually loads; otherwise the placeholder
-  // stays, rather than leaving a broken player on the page.
+  // --- tabs ------------------------------------------------------------
+  // Hash-addressable so a tab can be linked to directly, and so a refresh
+  // doesn't dump you back on the first one.
   (function () {
-    var video = document.querySelector('figure video');
-    var placeholder = document.querySelector('.demo-placeholder');
+    var buttons = Array.prototype.slice.call(document.querySelectorAll('.tabs button'));
+    if (!buttons.length) return;
+
+    function show(name, focus) {
+      var found = false;
+      buttons.forEach(function (btn) {
+        var on = btn.dataset.tab === name;
+        found = found || on;
+        btn.setAttribute('aria-selected', on ? 'true' : 'false');
+        btn.tabIndex = on ? 0 : -1;
+        document.getElementById('panel-' + btn.dataset.tab).hidden = !on;
+        if (on && focus) btn.focus();
+      });
+      return found;
+    }
+
+    buttons.forEach(function (btn, i) {
+      btn.addEventListener('click', function () {
+        show(btn.dataset.tab);
+        // Replace rather than push: the back button should leave the page,
+        // not walk back through tabs the visitor clicked.
+        history.replaceState(null, '', '#' + btn.dataset.tab);
+      });
+      btn.addEventListener('keydown', function (e) {
+        var next = e.key === 'ArrowRight' ? i + 1
+                 : e.key === 'ArrowLeft'  ? i - 1
+                 : e.key === 'Home'       ? 0
+                 : e.key === 'End'        ? buttons.length - 1
+                 : null;
+        if (next === null) return;
+        e.preventDefault();
+        next = (next + buttons.length) % buttons.length;
+        show(buttons[next].dataset.tab, true);
+        history.replaceState(null, '', '#' + buttons[next].dataset.tab);
+      });
+    });
+
+    function fromHash() {
+      var name = (location.hash || '').replace('#', '');
+      if (name && !show(name)) show('about');
+    }
+    window.addEventListener('hashchange', fromHash);
+    fromHash();
+  })();
+
+  // --- demo videos -----------------------------------------------------
+  // Reveal each clip only if it actually loads; otherwise its placeholder
+  // stays, rather than leaving a broken player on the page.
+  document.querySelectorAll('figure[data-demo]').forEach(function (fig) {
+    var video = fig.querySelector('video');
+    var placeholder = fig.querySelector('.demo-placeholder');
     if (!video) return;
     video.addEventListener('loadedmetadata', function () {
       video.hidden = false;
@@ -437,10 +709,10 @@
     });
     video.addEventListener('error', function () { video.hidden = true; });
     video.load();
-  })();
+  });
 
-  // Copy buttons. Progressive enhancement -- the command is selectable text
-  // whether or not this runs.
+  // --- copy buttons ----------------------------------------------------
+  // Progressive enhancement: the command is selectable text either way.
   document.querySelectorAll('.cmd button[data-copy]').forEach(function (btn) {
     btn.addEventListener('click', function () {
       navigator.clipboard.writeText(btn.dataset.copy).then(function () {
