@@ -54,19 +54,59 @@
 
   .wrap { max-width: 45rem; margin: 0 auto; padding: 0 1.5rem; }
 
-  header { padding: 5rem 0 0; }
+  /* Tighter than it wants to be, deliberately: the tab strip has to be
+     visible without scrolling or the navigation may as well not exist. */
+  header { padding: 3rem 0 0; }
 
   .name {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
-    font-size: 1.05rem;
+    gap: 0.5rem;
+    font-size: 1rem;
     font-weight: 600;
     letter-spacing: -0.01em;
-    margin: 0 0 3rem;
+    margin: 0 0 2rem;
   }
-  .name img { border-radius: 6px; }
   .name span { color: var(--faint); font-weight: 400; }
+
+  /* Headline and mark side by side. The right column was dead space, and
+     filling it lets the text block stay short without looking sparse. */
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 2rem;
+  }
+  .hero-mark {
+    width: 132px;
+    height: 132px;
+    border-radius: 22px;
+    display: block;
+  }
+  @media (max-width: 40rem) {
+    .hero { grid-template-columns: 1fr; gap: 1rem; }
+    .hero-mark { width: 72px; height: 72px; border-radius: 14px; }
+  }
+
+  /* --- compatibility --------------------------------------------------- */
+
+  .compat {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 1.25rem;
+    font-size: 0.875rem;
+  }
+  .compat b {
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+    color: var(--accent);
+    border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+    border-radius: 999px;
+    padding: 0.2rem 0.7rem;
+    font-weight: 600;
+  }
+  .compat span { color: var(--muted); }
 
   h1 {
     font-size: clamp(2rem, 6vw, 3rem);
@@ -297,28 +337,26 @@
 
   <header>
     <p class="name">
-      <img src="logo.png" alt="" width="28" height="28">
       sensor <span>— by Filament Platform Inc.</span>
     </p>
 
-    <h1>Hold a key, speak,<br>text appears.</h1>
-
-    <p class="lede">
-      Voice dictation for Linux that actually works on <strong>GNOME Wayland</strong>.
-      Runs entirely on your machine. Installs with one command — and removes
-      just as cleanly.
-    </p>
-
-    <figure data-demo="demo-use">
-      <video controls preload="metadata" poster="demo-use-poster.jpg" hidden>
-        <source src="demo-use.mp4" type="video/mp4">
-      </video>
-      <div class="demo-placeholder">
-        <div>demo-use.mp4</div>
-        <div style="font-size:0.8rem">hold the key, speak, text lands in the focused app</div>
+    <div class="hero">
+      <div>
+        <h1>Hold a key, speak,<br>text appears.</h1>
+        <p class="lede">
+          Voice dictation for Linux that actually works on <strong>GNOME Wayland</strong>.
+          Runs entirely on your machine. Installs with one command — and removes
+          just as cleanly.
+        </p>
       </div>
-      <figcaption>Recorded in real time, with audio. No cuts, no speed-up.</figcaption>
-    </figure>
+      <img class="hero-mark" src="logo.png" alt="" width="132" height="132">
+    </div>
+
+    <p class="compat">
+      <b>Ubuntu 24.04 &amp; Debian</b>
+      <b>x86-64</b>
+      <span>Other distros and ARM aren’t supported yet.</span>
+    </p>
 
     <div class="install">
       <div class="cmd">
@@ -326,9 +364,9 @@
         <button type="button" data-copy="curl -fsSL https://sensor.filamentplatform.com/install.sh | sh">Copy</button>
       </div>
       <p class="install-note">
-        Ubuntu&nbsp;24.04 and Debian, x86-64 &middot;
         <a href="install.sh">Read the script first</a> &middot;
         or <a href="https://github.com/Filament-Platform-Inc/Sensor/releases/latest/download/sensor_0.1.0_amd64.deb">download the .deb</a>
+        &middot; <a href="#use">see it working</a>
       </p>
     </div>
   </header>
@@ -493,6 +531,20 @@
 
   <!-- ======================= How to use it ======================= -->
   <div class="panel" id="panel-use" role="tabpanel" aria-labelledby="tab-use" hidden>
+
+    <section>
+      <h2>Watch it work</h2>
+      <figure data-demo="demo-use">
+        <video controls preload="metadata" poster="demo-use-poster.jpg" hidden>
+          <source src="demo-use.mp4" type="video/mp4">
+        </video>
+        <div class="demo-placeholder">
+          <div>demo-use.mp4</div>
+          <div style="font-size:0.8rem">hold the key, speak, text lands in the focused app</div>
+        </div>
+        <figcaption>Recorded in real time, with audio. No cuts, no speed-up.</figcaption>
+      </figure>
+    </section>
 
     <section>
       <h2>The basics</h2>
@@ -688,12 +740,18 @@
       });
     });
 
-    function fromHash() {
+    function fromHash(scroll) {
       var name = (location.hash || '').replace('#', '');
-      if (name && !show(name)) show('about');
+      if (!name) return;
+      if (!show(name)) { show('about'); return; }
+      // A link like #use must also bring the tab strip into view, or on a
+      // tall screen it looks like nothing happened.
+      if (scroll) {
+        document.querySelector('.tabs').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     }
-    window.addEventListener('hashchange', fromHash);
-    fromHash();
+    window.addEventListener('hashchange', function () { fromHash(true); });
+    fromHash(false);
   })();
 
   // --- demo videos -----------------------------------------------------
