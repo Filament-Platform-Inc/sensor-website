@@ -344,9 +344,8 @@
       <div>
         <h1>Hold a key, speak,<br>text appears.</h1>
         <p class="lede">
-          Voice dictation for Linux that actually works on <strong>GNOME Wayland</strong>.
-          Runs entirely on your machine. Installs with one command — and removes
-          just as cleanly.
+          <strong>sensor:</strong> privacy-first, free, lightweight voice dictation tool for Linux that works on GNOME Wayland.
+          Runs entirely on your machine. Installs with one command. Regret it? Remove with another command.
         </p>
       </div>
       <img class="hero-mark" src="logo.png" alt="" width="132" height="132">
@@ -384,15 +383,16 @@
     <section>
       <h2>Why this exists</h2>
       <p>
-        Dictation on Linux is a graveyard of half-working projects. Not because
-        transcription is hard — that problem is solved — but because the last
-        mile isn't. Every alternative is a <code>git clone</code>, a Python
-        environment, and a list of manual <code>sudo</code> steps that ends with
-        "now edit your udev rules."
+        <strong>sensor</strong> is a simple, reliable, and lightweight dictation solution for Linux.
+        It is a free alternative to tools like WhisprFlow. It works on GNOME Wayland, KDE, X11, and a bare tty. 
+        Privacy is guaranteed because the transcription happens entirely on your machine.
       </p>
       <p>
-        And most of them don't run on GNOME Wayland at all, which is the default
-        desktop on the most popular Linux distribution.
+        One command and you're done. No <code>git clone</code>, no Python environment, no a long list of 
+        manual <code>sudo</code> commands just for installation. 
+      </p>
+      <p>
+        If you regret it, one command and it's gone.
       </p>
       <p class="callout">
         sensor is the same transcription everyone else uses, packaged like
@@ -416,12 +416,12 @@
         <div>
           <h3>Nothing leaves</h3>
           <p>Transcription is on-device. The daemon runs with no network
-          namespace at all — it <em>cannot</em> transmit.</p>
+          namespace at all. Privacy is <em>guaranteed</em>.</p>
         </div>
         <div>
-          <h3>Shows its work</h3>
+          <h3>Ease of use</h3>
           <p>A window with the on/off switch, your microphone, and the last few
-          things it heard. Nothing hidden.</p>
+          things it heard. Every setting is at one place.</p>
         </div>
         <div>
           <h3>Deletes cleanly</h3>
@@ -478,7 +478,7 @@
         The script does not install anything itself. It checks your
         architecture, downloads the <code>.deb</code> from GitHub Releases,
         verifies it's a real package, and hands it to <code>apt</code>. Apt
-        does the installing — which is exactly what lets apt undo it later.
+        does the installing, which is exactly what lets apt undo it later.
       </p>
       <p>
         Then <strong>log out and back in once</strong>. That's unavoidable:
@@ -516,14 +516,10 @@
       </figure>
 
       <p>
-        This is listed as prominently as the install because it should be. A
-        tool that reads your keystrokes should be cheap to walk away from —
-        that's what makes it reasonable to try in the first place.
+        Then everything will be gone.
       </p>
       <p class="callout">
-        Removal is verified, not assumed: a throwaway container is snapshotted
-        before installing and diffed after purging, and the test fails if a
-        single file or group change survives.
+        I hate software that leaves a mess behind. sensor is not that.
       </p>
     </section>
 
@@ -552,15 +548,12 @@
         Hold <strong>Right&nbsp;Alt&nbsp;+&nbsp;<code>.</code></strong>, speak, release.
       </p>
       <p>
-        A chord rather than a single key, because single keys are all taken: a
-        lone modifier gets grabbed by browsers, and a lone ordinary key steals a
-        character from whatever you're typing. This one collides with nothing and
-        is still a one-handed press.
+        This is the default hotkey. You can change it to any key or chord you like among the few available.
+        Hotkey setting will be added in the future.
       </p>
       <p>
-        The text goes into whatever window has focus — a browser, an editor, a
-        chat box, a terminal. sensor doesn't care what the app is, because it
-        works below the desktop rather than talking to it.
+        The text goes into whatever window has focus. A browser, an editor, a
+        chat box, a terminal. They should all work.
       </p>
     </section>
 
@@ -573,9 +566,7 @@
         it heard.
       </p>
       <p class="callout">
-        Those recent transcriptions live in memory only. They are never written
-        to disk — a file of everything you have ever dictated would be a worse
-        thing to leak than the keystroke access itself.
+        Those recent transcriptions live in memory only. Nothing is written into your disk ever.
       </p>
     </section>
 
@@ -613,8 +604,8 @@
     <section>
       <h2>What it touches on your system</h2>
       <p>
-        sensor reads every keystroke and can synthesise keystrokes. That's
-        inherent to any global-hotkey tool on Linux, and you deserve to know
+        <strong>sensor</strong> reads every keystroke and can synthesise keystrokes. That's
+        inherent to any global-hotkey tool on Linux, and you would want to know
         exactly what it does before you install it.
       </p>
       <div class="scroll">
@@ -644,10 +635,6 @@
         <code>/dev/uinput</code> sits below the compositor, which is why it
         works on GNOME, KDE, X11 and a bare tty alike.
       </p>
-      <p>
-        There is no version of a global dictation hotkey on Linux that avoids
-        this. What's optional is whether the project is honest about it.
-      </p>
     </section>
 
     <section>
@@ -656,7 +643,7 @@
         <div>
           <h3>No network, structurally</h3>
           <p>The daemon's systemd unit sets <code>PrivateNetwork=yes</code>. It
-          has no network namespace — not a policy, a kernel-enforced fact.</p>
+          has no network namespace.</p>
         </div>
         <div>
           <h3>Never runs as root</h3>
@@ -665,13 +652,12 @@
         </div>
         <div>
           <h3>Nothing written down</h3>
-          <p>No transcript log, no history file. Recent utterances live in
-          memory and vanish when the daemon stops.</p>
+          <p>No transcript log, no history file. Recent speeches live in
+          memory and disappear when the daemon stops.</p>
         </div>
         <div>
           <h3>Small dependency tree</h3>
-          <p>A binary that reads every keystroke should be auditable by a
-          stranger in an afternoon. Every crate has to earn its place.</p>
+          <p>There is minimal dependency on other services or libraries.</p>
         </div>
       </div>
     </section>
@@ -679,7 +665,7 @@
     <section>
       <h2>Read it yourself</h2>
       <p>
-        The whole thing is MIT licensed and on
+        The project is MIT licensed and on
         <a href="https://github.com/Filament-Platform-Inc/Sensor">GitHub</a>.
         The parts worth reading first are the packaging scripts — 
         <code>packaging/debian/postinst</code> and <code>postrm</code> — 
