@@ -200,6 +200,13 @@
     margin: 0.75rem 0 0;
   }
 
+  .installs {
+    font-size: 0.875rem;
+    color: var(--faint);
+    margin: 0.5rem 0 0;
+  }
+  .installs b { color: var(--text); font-variant-numeric: tabular-nums; }
+
   /* --- content --------------------------------------------------------- */
 
   section { padding: 3.5rem 0 0; }
@@ -367,6 +374,7 @@
         or <a href="https://github.com/Filament-Platform-Inc/Sensor/releases/latest">download the .deb</a>
         &middot; <a href="#use">see it working</a>
       </p>
+      <p class="installs" id="installs" hidden></p>
     </div>
   </header>
 
@@ -666,6 +674,40 @@
 </div>
 
 <script>
+  // --- install count ---------------------------------------------------
+  // Summed across every release asset, from GitHub's public API. The
+  // installer downloads its .deb from GitHub Releases, so a `curl | sh`
+  // install lands in the same counter as a manual download.
+  //
+  // Nothing is collected here: the visitor's browser asks GitHub, and this
+  // page never learns who they are. That matters more than an exact number
+  // on a tool that reads every keystroke.
+  //
+  // GitHub batches and de-duplicates these counts, so treat the figure as
+  // a floor rather than a precise total -- hence "more than".
+  (function () {
+    var el = document.getElementById('installs');
+    if (!el) return;
+
+    fetch('https://api.github.com/repos/Filament-Platform-Inc/sensor/releases', {
+      headers: { Accept: 'application/vnd.github+json' }
+    })
+      .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
+      .then(function (releases) {
+        var n = 0;
+        releases.forEach(function (rel) {
+          (rel.assets || []).forEach(function (a) { n += a.download_count || 0; });
+        });
+        // A number this small says "nobody uses this" louder than it says
+        // anything useful, so stay quiet until it is worth showing.
+        if (n < 25) return;
+        el.innerHTML = 'Installed more than <b>' + n.toLocaleString() + '</b> times.';
+        el.hidden = false;
+      })
+      // Rate-limited, offline, or blocked: the page is fine without it.
+      .catch(function () {});
+  })();
+
   // --- tabs ------------------------------------------------------------
   // Hash-addressable so a tab can be linked to directly, and so a refresh
   // doesn't dump you back on the first one.
